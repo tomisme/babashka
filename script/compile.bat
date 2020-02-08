@@ -40,6 +40,8 @@ call %GRAALVM_HOME%\bin\native-image.cmd ^
   "--initialize-at-run-time=java.lang.Math$RandomNumberGeneratorHolder" ^
   "--initialize-at-build-time"  ^
   "-H:Log=registerResource:" ^
+  "-H:EnableURLProtocols=http,https" ^
+  "-H:+JNI" ^
   "--no-fallback" ^
   "--verbose" ^
   "%BABASHKA_XMX%"
