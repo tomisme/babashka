@@ -26,6 +26,8 @@ if %errorlevel% neq 0 exit /b %errorlevel%
 
 Rem the --no-server option is not supported in GraalVM Windows.
 
+call %GRAALVM_HOME%\bin\gu.cmd install native-image
+
 call %GRAALVM_HOME%\bin\native-image.cmd ^
   "-jar" "target/babashka-%BABASHKA_VERSION%-standalone.jar" ^
   "-H:Name=bb" ^
