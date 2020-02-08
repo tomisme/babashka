@@ -38,10 +38,11 @@ build_script:
 
 # call script/test.bat
 
+# see https://github.com/oracle/graal/issues/1852#issuecomment-572892384
 - cmd: >-
-    choco install visualstudio2017community --version 15.9.17.0 --no-progress --package-parameters --add Microsoft.VisualStudio.Component.VC.Tools.ARM64 --add Microsoft.VisualStudio.Component.VC.CMake.Project
+    choco install visualstudio2017-workload-vctools
 
-    call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
+    call "C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\VC\Auxiliary\Build\vcvars64.bat"
 
     powershell -Command "if (Test-Path('graalvm')) { return } else { (New-Object Net.WebClient).DownloadFile('https://github.com/graalvm/graalvm-ce-dev-builds/releases/download/20.1.0-dev-20200208_0320/graalvm-ce-java11-windows-amd64-20.1.0-dev.zip', 'graalvm.zip') }"
 
