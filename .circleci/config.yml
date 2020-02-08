@@ -141,6 +141,7 @@ jobs:
       xcode: "9.0"
     environment:
       GRAALVM_HOME: /Users/distiller/graalvm-ce-java11-20.1.0-dev/Contents/Home
+      JAVA_HOME: /Users/distiller/graalvm-ce-java11-20.1.0-dev/Contents/Home
       BABASHKA_PLATFORM: macos # used in release script
       BABASHKA_TEST_ENV: native
     steps:
