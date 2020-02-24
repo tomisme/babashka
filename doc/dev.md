@@ -57,6 +57,19 @@ Keep notes here about how adding libraries and classes to Babashka affects the b
 
 <!-- 2020/01/08, ..., 38.7mb / 11.3mb zipped -->
 <!-- Added: `clojure.data.xml`. Growth: 1.8mb / ... -->
+2020/02/21, 
+Added java.time.temporal.ChronoUnit
+40651596 - 40598260 = 53kb added.
+
+2020/02/19, e43727955a2cdabd2bb0189c20dd7f9a18156fc9
+Added fipp.edn/pprint
+40598268 - 39744804 = 853kb added.
+
+2020/02/09, c8fd1c7931d7842ebaec1fa8faf06d4ab58573bd
+Added java.lang.BigInteger and java.security.MessageDigest.
+39281972 - 39072764 = 209kb added.
+
+2020/04/02 v0.0.69 38883676
 
 2020/01/24, 43eef7075f9dac038d8d28a5ee4e49b6affd9864: 38.3mb, 11.1mb zipped
 Added hierarchies (derive, isa?, etc).

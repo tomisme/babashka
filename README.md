@@ -130,7 +130,9 @@ $ bash <(curl -s https://raw.githubusercontent.com/borkdude/babashka/master/inst
 
 ### Download
 
-You may also download a binary from [Github](https://github.com/borkdude/babashka/releases).
+You may also download a binary from
+[Github](https://github.com/borkdude/babashka/releases). For linux there is a
+static binary available which can be used on Alpine.
 
 ## Usage
 
@@ -188,6 +190,7 @@ enumerated explicitly.
   it is a function.
 - `clojure.stacktrace`
 - `clojure.test`
+- `clojure.pprint`: `pprint` (currently backed by [fipp](https://github.com/brandonbloom/fipp)'s  `fipp.edn/pprint`)
 - [`clojure.tools.cli`](https://github.com/clojure/tools.cli) aliased as `tools.cli`
 - [`clojure.data.csv`](https://github.com/clojure/data.csv) aliased as `csv`
 - [`cheshire.core`](https://github.com/dakrone/cheshire) aliased as `json`
@@ -518,14 +521,19 @@ $ bb script.clj -h
 
 ## Reader conditionals
 
-Babashka supports reader conditionals using the `:bb` feature:
+Babashka supports reader conditionals by taking either the `:bb` or `:clj`
+branch, whichever comes first. NOTE: the `:clj` branch behavior was added in
+version 0.0.71, before that version the `:clj` branch was ignored.
 
 ``` clojure
-$ cat example.clj
-#?(:clj (in-ns 'foo) :bb (println "babashka doesn't support in-ns yet!"))
+$ bb "#?(:bb :hello :clj :bye)"
+:hello
 
-$ ./bb example.clj
-babashka doesn't support in-ns yet!
+$ bb "#?(:clj :bye :bb :hello)"
+:bye
+
+$ bb "[1 2 #?@(:bb [] :clj [1])]"
+[1 2]
 ```
 
 ## Running tests
@@ -671,10 +679,22 @@ Ran 1 tests containing 0 assertions.
 {:test 1, :pass 0, :fail 0, :error 0, :type :summary}
 ```
 
-#### [medley](https://github.com/borkdude/medley/)
+#### [medley](https://github.com/weavejester/medley/)
 
-A fork of [medley](https://github.com/weavejester/medley) made compatible with
-babashka. Requires `bb` >= v0.0.58.
+Requires `bb` >= v0.0.71. Latest coordinates checked with with bb:
+
+``` clojure
+{:git/url "https://github.com/weavejester" :sha "a4e5fb5383f5c0d83cb2d005181a35b76d8a136d"}
+```
+
+Example:
+
+``` shell
+$ export BABASHKA_CLASSPATH=$(clojure -Spath -Sdeps '{:deps {medley {:git/url "https://github.com/weavejester" :sha "a4e5fb5383f5c0d83cb2d005181a35b76d8a136d"}}}')
+
+$ bb -e "(require '[medley.core :as m]) (m/index-by :id [{:id 1} {:id 2}])"
+{1 {:id 1}, 2 {:id 2}}
+```
 
 #### [clj-http-lite](https://github.com/borkdude/clj-http-lite)
 
@@ -689,7 +709,15 @@ $ bb "(require '[clj-http.lite.client :as client]) (:status (client/get \"https:
 
 #### [limit-break](https://github.com/technomancy/limit-break)
 
-A debug REPL library. Example:
+A debug REPL library.
+
+Latest coordinates checked with with bb:
+
+``` clojure
+{:git/url "https://github.com/technomancy/limit-break" :sha "050fcfa0ea29fe3340927533a6fa6fffe23bfc2f" :deps/manifest :deps}
+```
+
+Example:
 
 ``` shell
 $ export BABASHKA_CLASSPATH="$(clojure -Sdeps '{:deps {limit-break {:git/url "https://github.com/technomancy/limit-break" :sha "050fcfa0ea29fe3340927533a6fa6fffe23bfc2f" :deps/manifest :deps}}}' -Spath)"
@@ -718,6 +746,23 @@ export BABASHKA_CLASSPATH="$(clojure -Sdeps '{:deps {clojure-csv {:mvn/version "
 "
 ```
 
+#### [regal](https://github.com/lambdaisland/regal)
+
+Requires `bb` >= v0.0.71. Latest coordinates checked with with bb:
+
+``` clojure
+{:git/url "https://github.com/lambdaisland/regal" :sha "8d300f8e15f43480801766b7762530b6d412c1e6"}
+```
+
+Example:
+
+``` shell
+$ export BABASHKA_CLASSPATH=$(clojure -Spath -Sdeps '{:deps {regal {:git/url "https://github.com/lambdaisland/regal" :sha "8d300f8e15f43480801766b7762530b6d412c1e6"}}}')
+
+$ bb -e "(require '[lambdaisland.regal :as regal]) (regal/regex [:* \"ab\"])"
+#"(?:\Qab\E)*"
+```
+
 #### [spartan.test](https://github.com/borkdude/spartan.test/)
 
 A minimal test framework compatible with babashka. This library is deprecated
@@ -726,6 +771,7 @@ since babashka v0.0.68 which has `clojure.test` built-in.
 
 ### Blogs
 
+- [Babashka: a quick example](https://juxt.pro/blog/posts/babashka.html) by Malcolm Sparks
 - [Clojure Start Time in 2019](https://stuartsierra.com/2019/12/21/clojure-start-time-in-2019) by Stuart Sierra
 - [Advent of Random
   Hacks](https://lambdaisland.com/blog/2019-12-19-advent-of-parens-19-advent-of-random-hacks)
@@ -904,9 +950,24 @@ See [examples/http_server.clj](https://github.com/borkdude/babashka/blob/master/
 
 Original by [@souenzzo](https://gist.github.com/souenzzo/a959a4c5b8c0c90df76fe33bb7dfe201)
 
+### Print random docstring
+
+See [examples/random_doc.clj](https://github.com/borkdude/babashka/blob/master/examples/random_doc.clj)
+
+``` shell
+$ examples/random_doc.clj
+-------------------------
+clojure.core/ffirst
+([x])
+  Same as (first (first x))
+```
+
 ## Thanks
 
 - [adgoji](https://www.adgoji.com/) for financial support
+- [Nikita Prokopov](https://github.com/tonsky) for the logo
+- [contributors](https://github.com/borkdude/babashka/graphs/contributors) and
+  other users posting issues with bug reports and ideas
 
 ## License
 

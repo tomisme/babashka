@@ -160,6 +160,12 @@
 
 (deftest future-test
   (is (= 6 (bb nil "@(future (+ 1 2 3))"))))
+  
+(deftest promise-test
+  (is (= :timeout (bb nil "(deref (promise) 1 :timeout)")))
+  (is (= :ok (bb nil "(let [x (promise)]
+                        (deliver x :ok)
+                        @x)"))))
 
 (deftest process-builder-test
   (is (str/includes? (bb nil "
@@ -230,8 +236,9 @@
   (is (zero? (bb nil "(try (/ 1 0) (catch ArithmeticException _ 0))"))))
 
 (deftest reader-conditionals-test
-  (is (= :hello (bb nil "#?(:clj (in-ns 'foo)) (println :hello)")))
-  (is (= :hello (bb nil "#?(:bb :hello :default :bye)"))))
+  (is (= :hello (bb nil "#?(:bb :hello :default :bye)")))
+  (is (= :hello (bb nil "#?(:clj :hello :bb :bye)")))
+  (is (= [1 2] (bb nil "[1 2 #?@(:bb [] :clj [1])]"))))
 
 (deftest csv-test
   (is (= '(["Adult" "87727"] ["Elderly" "43914"] ["Child" "33411"] ["Adolescent" "29849"]
@@ -335,6 +342,14 @@
     (.deleteOnExit tmp-file)
     (is (empty? (bb nil "--uberscript" (.getPath tmp-file) "-e" "(System/exit 1)")))
     (is (= "(System/exit 1)" (slurp tmp-file)))))
+
+(deftest unrestricted-access
+  (testing "babashka is allowed to mess with built-in vars"
+    (is (= 1 (bb nil "
+(def inc2 inc) (alter-var-root #'clojure.core/inc (constantly dec))
+(let [res (inc 2)]
+  (alter-var-root #'clojure.core/inc (constantly inc2))
+  res)")))))
 
 ;;;; Scratch
 
