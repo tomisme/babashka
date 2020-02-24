@@ -70,6 +70,7 @@ jobs:
       GRAALVM_HOME: /home/circleci/graalvm-ce-java11-20.1.0-dev
       BABASHKA_PLATFORM: linux # used in release script
       BABASHKA_TEST_ENV: native
+      BABASHKA_XMX: 2500m
     steps:
       - checkout
       - run:
@@ -138,6 +139,7 @@ jobs:
       GRAALVM_HOME: /home/circleci/graalvm-ce-java8-19.3.0
       BABASHKA_PLATFORM: linux-static # used in release script
       BABASHKA_TEST_ENV: native
+      BABASHKA_XMX: 2500m
       BABASHKA_STATIC: true
     steps:
       - checkout
