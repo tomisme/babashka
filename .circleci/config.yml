@@ -143,7 +143,7 @@ jobs:
       BABASHKA_XMX: -J-Xmx6g
       BABASHKA_STATIC: true
     resource_class: large
-    steps:
+    steps: 
       - checkout
       - run:
           name: "Pull Submodules"
