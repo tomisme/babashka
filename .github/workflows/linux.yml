@@ -1,0 +1,45 @@
+name: Build linux binary
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Checkout submodules
+      shell: bash
+      run: |
+        # If your submodules are configured to use SSH instead of HTTPS please uncomment the following line
+        # git config --global url."https://github.com/".insteadOf "git@github.com:"
+        auth_header="$(git config --local --get http.https://github.com/.extraheader)"
+        git submodule sync --recursive
+        git -c "http.extraheader=$auth_header" -c protocol.version=2 submodule update --init --force --recursive --depth=1
+    - name: Install clojure
+      shell: bash
+      run: |
+        wget https://download.clojure.org/install/linux-install-1.10.1.447.sh
+        chmod +x linux-install-1.10.1.447.sh
+        sudo ./linux-install-1.10.1.447.sh
+    - name: Download graalvm
+      shell: bash
+      run: |
+        cd ~
+        if ! [ -d graalvm-ce-java11-20.0.0 ]; then
+          curl -O -sL https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-20.0.0/graalvm-ce-java11-linux-amd64-20.0.0.tar.gz
+          tar xzf graalvm-ce-java11-linux-amd64-20.0.0.tar.gz
+        fi
+        # ls -la
+    - name: Build binary
+      shell: bash
+      run: |
+        export GRAALVM_HOME=~/graalvm-ce-java11-20.0.0
+        export BABASHKA_PLATFORM=linux
+        export BABASHKA_XMX=-J-Xmx5500m
+        script/compile
+    - uses: actions/upload-artifact@v1
+      with:
+        name: bb
+        path: ./bb
