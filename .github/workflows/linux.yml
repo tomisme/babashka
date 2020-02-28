@@ -36,6 +36,7 @@ jobs:
       shell: bash
       run: |
         export GRAALVM_HOME=~/graalvm-ce-java11-20.0.0
+        export JAVA_HOME=$GRAALVM_HOME
         export BABASHKA_PLATFORM=linux
         export BABASHKA_XMX=-J-Xmx4g
         script/compile
