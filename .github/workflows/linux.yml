@@ -37,5 +37,9 @@ jobs:
       run: |
         export GRAALVM_HOME=~/graalvm-ce-java11-20.0.0
         export BABASHKA_PLATFORM=linux
-        export BABASHKA_XMX=-J-Xmx4g
+        export BABASHKA_XMX=-J-Xmx5500m
         script/compile
+    - uses: actions/upload-artifact@v1
+      with:
+        name: bb
+        path: ./bb

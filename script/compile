@@ -16,7 +16,7 @@ fi
 BABASHKA_VERSION=$(cat resources/BABASHKA_VERSION)
 
 export JAVA_HOME=$GRAALVM_HOME
-PATH=$GRAALVM_HOME/bin:$PATH
+export PATH=$GRAALVM_HOME/bin:$PATH
 
 echo "java version $(which java) $(java --version)"
 
