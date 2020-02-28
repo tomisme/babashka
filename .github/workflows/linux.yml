@@ -28,18 +28,22 @@ jobs:
       run: |
         cd ~
         if ! [ -d graalvm-ce-java11-20.0.0 ]; then
-          curl -O -sL https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-20.0.0/graalvm-ce-java11-linux-amd64-20.0.0.tar.gz
-          tar xzf graalvm-ce-java11-linux-amd64-20.0.0.tar.gz
+          curl -O -sL https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-19.3.1/graalvm-ce-java8-linux-amd64-19.3.1.tar.gz
+          tar xzf graalvm-ce-java8-linux-amd64-19.3.1.tar.gz
         fi
         # ls -la
     - name: Build binary
       shell: bash
       run: |
-        export GRAALVM_HOME=~/graalvm-ce-java11-20.0.0
+        export GRAALVM_HOME=~/graalvm-ce-java8-19.3.1
         export BABASHKA_PLATFORM=linux
         export BABASHKA_XMX=-J-Xmx5500m
         script/compile
+    - name: Make release
+      shell: baseh
+      run: |
+        .circleci/script/release
     - uses: actions/upload-artifact@v1
       with:
         name: bb
-        path: ./bb
+        path: /tmp/release
