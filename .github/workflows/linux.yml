@@ -12,8 +12,14 @@ jobs:
     - name: Checkout submodules
       shell: bash
       run: |
-       # If your submodules are configured to use SSH instead of HTTPS please uncomment the following line
-       # git config --global url."https://github.com/".insteadOf "git@github.com:"
-       auth_header="$(git config --local --get http.https://github.com/.extraheader)"
-       git submodule sync --recursive
-       git -c "http.extraheader=$auth_header" -c protocol.version=2 submodule update --init --force --recursive --depth=1
+        # If your submodules are configured to use SSH instead of HTTPS please uncomment the following line
+        # git config --global url."https://github.com/".insteadOf "git@github.com:"
+        auth_header="$(git config --local --get http.https://github.com/.extraheader)"
+        git submodule sync --recursive
+        git -c "http.extraheader=$auth_header" -c protocol.version=2 submodule update --init --force --recursive --depth=1
+    - name: install clojure
+      shell: bash
+      run: |
+        wget https://download.clojure.org/install/linux-install-1.10.1.447.sh
+        chmod +x linux-install-1.10.1.447.sh
+        sudo ./linux-install-1.10.1.447.sh
