@@ -17,6 +17,8 @@ BABASHKA_VERSION=$(cat resources/BABASHKA_VERSION)
 
 export JAVA_HOME=$GRAALVM_HOME
 
+echo "java version $(java --version)"
+
 lein with-profiles +reflection do run
 lein do clean, uberjar
 
