@@ -1,6 +1,6 @@
 (ns babashka.impl.clojure.core
   {:no-doc true}
-  (:refer-clojure :exclude [future])
+  (:refer-clojure :exclude [future read read-string])
   (:require [borkdude.graal.locking :as locking]
             [sci.impl.namespaces :refer [copy-core-var]]))
 

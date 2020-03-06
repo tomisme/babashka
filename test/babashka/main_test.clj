@@ -342,6 +342,15 @@
   (alter-var-root #'clojure.core/inc (constantly inc2))
   res)")))))
 
+(deftest pprint-test
+  (testing "writer"
+    (is (string? (bb nil "(let [sw (java.io.StringWriter.)] (clojure.pprint/pprint (range 10) sw) (str sw))")))))
+
+(deftest read-string-test
+  (testing "namespaced keyword via alias"
+    (is (= :clojure.string/foo
+           (bb nil "(ns foo (:require [clojure.string :as str])) (read-string \"::str/foo\")")))))
+
 ;;;; Scratch
 
 (comment
