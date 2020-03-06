@@ -35,7 +35,6 @@ args=( -jar target/babashka-$BABASHKA_VERSION-standalone.jar \
             -H:Log=registerResource: \
             -H:EnableURLProtocols=http,https \
             --enable-all-security-services \
-            -H:+PrintAnalysisCallTree \
             -H:+JNI \
             --verbose \
             --no-fallback \
