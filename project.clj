@@ -7,7 +7,7 @@
         :url "https://github.com/borkdude/babashka"}
   :license {:name "Eclipse Public License 1.0"
             :url "http://opensource.org/licenses/eclipse-1.0.php"}
-  :source-paths ["src" "sci/src"]
+  :source-paths ["src" "sci/src" "babashka.curl/src"]
   :resource-paths ["resources" "sci/resources"]
   :dependencies [[org.clojure/clojure "1.10.2-alpha1"]
                  [org.clojure/tools.reader "1.3.2"]
@@ -18,7 +18,9 @@
                  [org.clojure/tools.cli "0.4.2"]
                  [org.clojure/data.csv "1.0.0"]
                  [cheshire "5.10.0"]
-                 [fipp "0.6.22"]]
+                 [fipp "0.6.22"]
+                 [com.cognitect/transit-clj "1.0.324"]
+                 #_[nrepl/bencode "1.0.0"]]
   :profiles {:test {:dependencies [[clj-commons/conch "0.9.2"]
                                    [com.clojure-goes-fast/clj-async-profiler "0.4.0"]]}
              :uberjar {:global-vars {*assert* false}

@@ -29,7 +29,7 @@
 
 (deftest main-test
   (testing "-io behaves as identity"
-    (= "foo\nbar\n" (test-utils/bb "foo\nbar\n" "-io" "*input*")))
+    (is (= "foo\nbar\n" (test-utils/bb "foo\nbar\n" "-io" "*input*"))))
   (testing "if and when"
     (is (= 1 (bb 0 '(if (zero? *input*) 1 2))))
     (is (= 2 (bb 1 '(if (zero? *input*) 1 2))))
@@ -118,9 +118,13 @@
 
 (deftest load-file-test
   (let [tmp (java.io.File/createTempFile "script" ".clj")]
-    (spit tmp "(defn foo [x y] (+ x y)) (defn bar [x y] (* x y))")
-    (is (= "120\n" (test-utils/bb nil (format "(load-file \"%s\") (bar (foo 10 30) 3)"
-                                              (.getPath tmp)))))))
+    (spit tmp "(ns foo) (defn foo [x y] (+ x y)) (defn bar [x y] (* x y))")
+    (is (= "120\n" (test-utils/bb nil (format "(load-file \"%s\") (foo/bar (foo/foo 10 30) 3)"
+                                              (.getPath tmp)))))
+    (testing "namespace is restored after load file"
+      (is (= 'start-ns
+             (bb nil (format "(ns start-ns) (load-file \"%s\") (ns-name *ns*)"
+                             (.getPath tmp))))))))
 
 (deftest eval-test
   (is (= "120\n" (test-utils/bb nil "(eval '(do (defn foo [x y] (+ x y))
@@ -224,7 +228,18 @@
   (is (= {:result 8080} (bb nil "test/babashka/scripts/tools.cli.bb"))))
 
 (deftest try-catch-test
-  (is (zero? (bb nil "(try (/ 1 0) (catch ArithmeticException _ 0))"))))
+  (is (zero? (bb nil "(try (/ 1 0) (catch ArithmeticException _ 0))")))
+  (is (= :got-it (bb nil "
+(defn foo []
+  (throw (java.util.MissingResourceException. \"o noe!\" \"\" \"\")))
+
+(defn bar
+  []
+  (try (foo)
+       (catch java.util.MissingResourceException _
+         :got-it)))
+(bar)
+"))))
 
 (deftest reader-conditionals-test
   (is (= :hello (bb nil "#?(:bb :hello :default :bye)")))
@@ -350,6 +365,15 @@
   (testing "namespaced keyword via alias"
     (is (= :clojure.string/foo
            (bb nil "(ns foo (:require [clojure.string :as str])) (read-string \"::str/foo\")")))))
+
+(deftest available-stream-test
+  (is (= 0 (bb nil "(.available System/in)"))))
+
+(deftest file-reader-test
+  (when (str/includes? (str/lower-case (System/getProperty "os.name")) "linux")
+    (let [v (bb nil "(slurp (io/reader (java.io.FileReader. \"/proc/loadavg\")))")]
+      (prn "output:" v)
+      (is v))))
 
 ;;;; Scratch
 

@@ -21,6 +21,7 @@
           java.io.InputStream
           java.io.IOException
           java.io.OutputStream
+          java.io.FileReader
           java.io.Reader
           java.io.StringReader
           java.io.StringWriter
@@ -33,7 +34,9 @@
           java.lang.Exception
           java.lang.Integer
           java.lang.Long
+          java.lang.NumberFormatException
           java.lang.Math
+          java.lang.RuntimeException
           java.util.concurrent.LinkedBlockingQueue
           java.lang.Object
           java.lang.String
@@ -90,6 +93,8 @@
           java.util.Base64$Decoder
           java.util.Base64$Encoder
           java.util.Date
+          java.util.MissingResourceException
+          java.util.Properties
           java.util.UUID
           java.util.concurrent.TimeUnit
           java.util.zip.InflaterInputStream
@@ -194,7 +199,9 @@
                    (instance? java.io.ByteArrayOutputStream v)
                    java.io.ByteArrayOutputStream
                    (instance? java.security.MessageDigest v)
-                   java.security.MessageDigest)))))
+                   java.security.MessageDigest
+                   (instance? java.io.InputStream v)
+                   java.io.InputStream)))))
 
 (def class-map (gen-class-map))
 

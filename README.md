@@ -152,6 +152,10 @@ You may also download a binary from
 [Github](https://github.com/borkdude/babashka/releases). For linux there is a
 static binary available which can be used on Alpine.
 
+## Docker
+
+Check out the image on [Docker hub](https://hub.docker.com/r/borkdude/babashka/).
+
 ## Usage
 
 ``` shellsession
@@ -211,6 +215,7 @@ enumerated explicitly.
 - [`clojure.tools.cli`](https://github.com/clojure/tools.cli) aliased as `tools.cli`
 - [`clojure.data.csv`](https://github.com/clojure/data.csv) aliased as `csv`
 - [`cheshire.core`](https://github.com/dakrone/cheshire) aliased as `json`
+- [`cognitect.transit`](https://github.com/cognitect/transit-clj) aliased as `transit`
 
 A selection of java classes are available, see `babashka/impl/classes.clj`.
 
@@ -329,6 +334,12 @@ $ bb '((fn [x] (println x) (when (not (signal/pipe-signal-received?)) (recur (in
 ```
 
 The namespace `babashka.signal` is aliased as `signal` in the `user` namespace.
+
+#### babashka.curl
+
+The namespace `babashka.curl` is a tiny wrapper around curl. It's aliased as
+`curl` in the user namespace.  See
+[babashka.curl](https://github.com/borkdude/babashka.curl).
 
 ## Running a file
 
@@ -459,6 +470,10 @@ $ export BABASHKA_PRELOADS="(require '[my-gist-script])"
 $ bb "(my-gist-script/-main)"
 Hello from gist script!
 ```
+
+Also see the
+[babashka.classpath](https://github.com/borkdude/babashka/#babashkaclasspath)
+namespace which allows dynamically adding to the classpath.
 
 ### Deps.clj
 
@@ -601,8 +616,20 @@ bb=> :repl/quit
 $
 ```
 
-A socket REPL client for Emacs is
-[inf-clojure](https://github.com/clojure-emacs/inf-clojure).
+Editor plugins offering auto-completion support when connected to a babashka socket REPL:
+
+- Emacs: [inf-clojure](https://github.com/clojure-emacs/inf-clojure):
+
+  To connect:
+
+  `M-x inf-clojure-connect localhost 1666`
+
+  Before evaluating from a Clojure buffer:
+
+  `M-x inf-clojure-minor-mode`
+
+- Atom: [chlorine](https://github.com/mauricioszabo/atom-chlorine)
+- Vim: [vim-iced](https://github.com/liquidz/vim-iced)
 
 ## Spawning and killing a process
 
@@ -647,10 +674,12 @@ mark operations (`<!`, `>!`, etc.) map to the double exclamation mark operations
 
 For making HTTP requests you can use:
 
+- [babashka.curl](https://github.com/borkdude/babashka.curl). This library is
+  included with babashka and aliased as `curl` in the user namespace.
 - `slurp` for simple `GET` requests
-- [clj-http-lite](https://github.com/borkdude/clj-http-lite) as a library
-- `curl` via `clojure.java.shell`. Also see
-  [babashka.curl](https://github.com/borkdude/babashka.curl).
+- [clj-http-lite](https://github.com/borkdude/clj-http-lite) as a library.
+- `clojure.java.shell` or `java.lang.ProcessBuilder` for shelling out to your
+  favorite command line http client
 
 ### HTTP over Unix sockets
 
@@ -807,11 +836,31 @@ $ bb -e "(require '[lambdaisland.regal :as regal]) (regal/regex [:* \"ab\"])"
 #"(?:\Qab\E)*"
 ```
 
-#### [spartan.test](https://github.com/borkdude/spartan.test/)
+#### [4bb](https://github.com/porkostomus/4bb)
 
-A minimal test framework compatible with babashka. This library is deprecated
-since babashka v0.0.68 which has `clojure.test` built-in.
+4clojure as a babashka script!
 
+#### [cprop](https://github.com/tolitius/cprop/)
+
+A clojure configuration libary. Latest test version: `"0.1.16"`.
+
+#### [comb](https://github.com/weavejester/comb)
+
+Simple templating system for Clojure. Latest tested version: `"0.1.1"`.
+
+``` clojure
+$ export BABASHKA_CLASSPATH=$(clojure -Spath -Sdeps '{:deps {comb {:mvn/version "0.1.1"}}}')
+$ rlwrap bb
+...
+user=> (require '[comb.template :as template])
+user=> (template/eval "<% (dotimes [x 3] %>foo<% ) %>")
+"foofoofoo"
+user=> (template/eval "Hello <%= name %>" {:name "Alice"})
+"Hello Alice"
+user=> (def hello (template/fn [name] "Hello <%= name %>"))
+user=> (hello "Alice")
+"Hello Alice"
+```
 
 ### Blogs
 
@@ -1010,6 +1059,56 @@ clojure.core/ffirst
 ([x])
   Same as (first (first x))
 ```
+
+### Cryptographic hash
+
+`sha1.clj`:
+``` clojure
+#!/usr/bin/env bb
+
+(defn sha1
+  [s]
+  (let [hashed (.digest (.getInstance java.security.MessageDigest "SHA-1")
+                        (.getBytes s))
+        sw (java.io.StringWriter.)]
+    (binding [*out* sw]
+      (doseq [byte hashed]
+        (print (format "%02X" byte))))
+    (str sw)))
+
+(sha1 (first *command-line-args*))
+```
+
+``` shell
+$ sha1.clj babashka
+"0AB318BE3A646EEB1E592781CBFE4AE59701EDDF"
+```
+
+### Package script as Docker image
+
+`Dockerfile`:
+``` dockerfile
+FROM borkdude/babashka
+RUN echo $'\
+(println "Your command line args:" *command-line-args*)\
+'\
+>> script.clj
+
+ENTRYPOINT ["bb", "script.clj"]
+```
+
+``` shell
+$ docker build . -t script
+...
+$ docker run --rm script 1 2 3
+Your command line args: (1 2 3)
+```
+
+## Package babashka script as a AWS Lambda
+
+AWS Lambda runtime doesn't support signals, therefore babashka has to disable
+handling of the SIGPIPE. This can be done by setting
+`BABASHKA_DISABLE_PIPE_SIGNAL_HANDLER` to `true`.
 
 ## Thanks
 
