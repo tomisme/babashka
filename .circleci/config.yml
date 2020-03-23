@@ -70,6 +70,7 @@ jobs:
       GRAALVM_HOME: /home/circleci/graalvm-ce-java8-20.1.0-dev
       BABASHKA_PLATFORM: linux # used in release script
       BABASHKA_TEST_ENV: native
+    resource_class: large
     steps:
       - checkout
       - run:
