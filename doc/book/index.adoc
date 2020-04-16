@@ -1,0 +1,9 @@
+Scripting with Clojure and Babashka
+===================================
+Michiel Borkent
+v0.0.1, April 2020
+:doctype: book
+:description: A book about shell scripting with Clojure and Babashka
+:source-highlighter: coderay
+:coderay-css: class
+:icons: font
