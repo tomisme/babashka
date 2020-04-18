@@ -17,6 +17,7 @@
    [babashka.impl.curl :refer [curl-namespace]]
    [babashka.impl.nrepl-server :as nrepl-server]
    [babashka.impl.pipe-signal-handler :refer [handle-pipe! pipe-signal-received?]]
+   [babashka.impl.postal :refer [postal-namespace]]
    [babashka.impl.repl :as repl]
    [babashka.impl.sigint-handler :as sigint-handler]
    [babashka.impl.socket-repl :as socket-repl]
@@ -250,7 +251,8 @@ Everything after that is bound to *command-line-args*."))
     yaml clj-yaml.core
     curl babashka.curl
     transit cognitect.transit
-    bencode bencode.core})
+    bencode bencode.core
+    mail postal.core})
 
 (def cp-state (atom nil))
 
@@ -285,7 +287,8 @@ Everything after that is bound to *command-line-args*."))
    'clojure.pprint pprint-namespace
    'babashka.curl curl-namespace
    'cognitect.transit transit-namespace
-   'bencode.core bencode-namespace})
+   'bencode.core bencode-namespace
+   'postal.core postal-namespace})
 
 (def bindings
   {'java.lang.System/exit exit ;; override exit, so we have more control

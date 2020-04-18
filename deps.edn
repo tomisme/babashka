@@ -10,7 +10,8 @@
         cheshire {:mvn/version "5.10.0"}
         fipp {:mvn/version "0.6.22"}
         clj-commons/clj-yaml {:mvn/version "0.7.1"}
-        com.cognitect/transit-clj {:mvn/version "1.0.324"}}
+        com.cognitect/transit-clj {:mvn/version "1.0.324"}
+        com.draines/postal {:mvn/version "2.0.3"}}
  :aliases {:main
            {:main-opts ["-m" "babashka.main"]}
            :profile
