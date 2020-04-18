@@ -25,7 +25,8 @@
                  [com.cognitect/transit-clj "1.0.324"]
                  [com.draines/postal "2.0.3"]]
   :profiles {:test {:dependencies [[clj-commons/conch "0.9.2"]
-                                   [com.clojure-goes-fast/clj-async-profiler "0.4.0"]]}
+                                   [com.clojure-goes-fast/clj-async-profiler "0.4.0"]
+                                   [com.icegreen/greenmail "1.5.13"]]}
              :uberjar {:global-vars {*assert* false}
                        :jvm-opts ["-Dclojure.compiler.direct-linking=true"
                                   "-Dclojure.spec.skip-macros=true"]

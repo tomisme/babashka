@@ -106,7 +106,7 @@
           java.util.zip.GZIPOutputStream
           org.yaml.snakeyaml.error.YAMLException
           ~(symbol "[B")
-          ;;com.sun.mail.smtp.SMTPTransport
+          com.sun.mail.smtp.SMTPTransport
           com.sun.mail.smtp.SMTPSSLTransport
           ]
     :constructors [clojure.lang.Delay
