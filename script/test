@@ -1,21 +1,32 @@
 #!/usr/bin/env bash
 
 set -eo pipefail
-BABASHKA_PRELOADS=""
-BABASHKA_CLASSPATH=""
-echo "running tests part 1"
+
+function reset() {
+    unset BABASHKA_PRELOADS
+    unset BABASHKA_CLASSPATH
+    unset BABASHKA_CLASSPATH_TEST
+    unset BABASHKA_POSTAL_TEST
+}
+
+echo "running tests part 1 (general tests)"
+reset
 lein test "$@"
 
-BABASHKA_PRELOADS='(defn __bb__foo [] "foo") (defn __bb__bar [] "bar")'
-BABASHKA_PRELOADS_TEST=true
-echo "running tests part 2"
+echo "running tests part 2 (preloads)"
+reset
+export BABASHKA_PRELOADS='(defn __bb__foo [] "foo") (defn __bb__bar [] "bar")'
+export BABASHKA_PRELOADS_TEST=true
 lein test :only babashka.main-test/preloads-test
 
-BABASHKA_PRELOADS="(require '[env-ns])"
-BABASHKA_CLASSPATH_TEST=true
-BABASHKA_CLASSPATH="test-resources/babashka/src_for_classpath_test/env"
-echo "running tests part 3"
+echo "running tests part 3 (classpath)"
+reset
+export BABASHKA_PRELOADS="(require '[env-ns])"
+export BABASHKA_CLASSPATH_TEST=true
+export BABASHKA_CLASSPATH="test-resources/babashka/src_for_classpath_test/env"
 lein test :only babashka.classpath-test/classpath-env-test
 
-BABASHKA_POSTAL_TEST=true
-lein test :only babashka.post-test
+echo "running tests part 4 (postal)"
+reset
+export BABASHKA_POSTAL_TEST=true
+lein test :only babashka.postal-test
