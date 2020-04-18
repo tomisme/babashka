@@ -29,4 +29,8 @@ lein test :only babashka.classpath-test/classpath-env-test
 echo "running tests part 4 (postal)"
 reset
 export BABASHKA_POSTAL_TEST=true
+
+if [ -z $CI ] && [ $(uname) != "Darwin"] ]
+then
 lein test :only babashka.postal-test
+fi
