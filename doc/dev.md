@@ -61,6 +61,9 @@ $ BABASHKA_XMX="-J-Xmx4g" script/compile
 
 Keep notes here about how adding libraries and classes to Babashka affects the binary size.
 
+2020/04/18 Added drewr/postal and javax.mail classes
+48058348 - 45923028 = 2136kb added.
+
 2020/03/29 Added clj-yaml for parsing and generating yaml.
 45196996 - 42626884 = 2570kb added.
 

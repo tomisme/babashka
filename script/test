@@ -16,3 +16,6 @@ BABASHKA_CLASSPATH_TEST=true
 BABASHKA_CLASSPATH="test-resources/babashka/src_for_classpath_test/env"
 echo "running tests part 3"
 lein test :only babashka.classpath-test/classpath-env-test
+
+BABASHKA_POSTAL_TEST=true
+lein test :only babashka.post-test
