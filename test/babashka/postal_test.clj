@@ -1,5 +1,6 @@
 (ns babashka.postal-test
   (:require  [babashka.test-utils :as tu]
+             [babashka.wait :as wait]
              [clojure.string :as str]
              [clojure.test :refer [deftest is]])
   (:import [com.icegreen.greenmail.util ServerSetupTest GreenMail DummySSLSocketFactory]
@@ -8,7 +9,6 @@
 (deftest test-smtp
   (when (= "true" (System/getenv "BABASHKA_POSTAL_TEST"))
     (Security/setProperty "ssl.SocketFactory.provider" (.getName DummySSLSocketFactory));
-    (System/setProperty "greenmail.startup.timeout" "5000")
     (doseq [port [3025 (when-not tu/native?
                          ;; the DummySSLSocketFactory isn't available within bb
                          3465)]
@@ -16,6 +16,7 @@
       (let [mail-setup ServerSetupTest/ALL
             green-mail (GreenMail. mail-setup)]
         (.start green-mail)
+        (wait/wait-for-port "localhost" port)
         (tu/bb nil (format "
 (require '[postal.core :as mail])
 (mail/send-message
