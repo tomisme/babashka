@@ -15,6 +15,7 @@
                  [org.clojure/tools.reader "1.3.2"]
                  [borkdude/edamame "0.0.11-alpha.9"]
                  [borkdude/graal.locking "0.0.2"]
+                 [borkdude/sci.impl.reflector "0.0.1-jdk11"]
                  [borkdude/sci.impl.reflector "0.0.1"]
                  [org.clojure/core.async "1.0.567"]
                  [org.clojure/tools.cli "0.4.2"]
