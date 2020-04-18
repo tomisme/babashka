@@ -8,6 +8,7 @@
 (deftest test-smtp
   (when (= "true" (System/getenv "BABASHKA_POSTAL_TEST"))
     (Security/setProperty "ssl.SocketFactory.provider" (.getName DummySSLSocketFactory));
+    (System/setProperty "greenmail.startup.timeout" "5000")
     (doseq [port [3025 (when-not tu/native?
                          ;; the DummySSLSocketFactory isn't available within bb
                          3465)]
