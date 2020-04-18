@@ -30,7 +30,7 @@ echo "running tests part 4 (postal)"
 reset
 export BABASHKA_POSTAL_TEST=true
 
-if [ -z $CI ] && [ $(uname) != "Darwin"] ]
+if [ $(uname) != "Darwin" ] || [ -z $CI ]
 then
 lein test :only babashka.postal-test
 fi
