@@ -8,6 +8,11 @@
 
 (deftest test-smtp
   (when (= "true" (System/getenv "BABASHKA_POSTAL_TEST"))
+    (Thread/setDefaultUncaughtExceptionHandler
+     (reify Thread$UncaughtExceptionHandler
+       (uncaughtException [_ thread ex]
+         (when-not (instance? java.net.SocketException (.getCause ex))
+           (.printStackTrace ex)))))
     (Security/setProperty "ssl.SocketFactory.provider" (.getName DummySSLSocketFactory));
     (doseq [port [3025 (when-not tu/native?
                          ;; the DummySSLSocketFactory isn't available within bb

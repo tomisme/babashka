@@ -24,9 +24,12 @@
                  [clj-commons/clj-yaml "0.7.1"]
                  [com.cognitect/transit-clj "1.0.324"]
                  [com.draines/postal "2.0.3"]]
-  :profiles {:test {:dependencies [[clj-commons/conch "0.9.2"]
+  :profiles {:test {:resource-paths ["test-resources"]
+                    :jvm-opts ["-Dlog4j.configuration=log4j.xml"]
+                    :dependencies [[clj-commons/conch "0.9.2"]
                                    [com.clojure-goes-fast/clj-async-profiler "0.4.0"]
-                                   [com.icegreen/greenmail "1.5.13"]]}
+                                   [com.icegreen/greenmail "1.5.13"]
+                                   [org.slf4j/slf4j-log4j12 "1.7.25"]]}
              :uberjar {:global-vars {*assert* false}
                        :jvm-opts ["-Dclojure.compiler.direct-linking=true"
                                   "-Dclojure.spec.skip-macros=true"]
