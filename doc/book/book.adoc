@@ -7,13 +7,15 @@ v0.0.1, April 2020
 :source-highlighter: coderay
 :coderay-css: class
 :icons: font
-
-== TODO
-
-- One-liners
-- Working with child processes
-- Working with XML
+:toc: left
 
 include::intro.adoc[]
 include::getting_started.adoc[]
+include::shell_integration.adoc[]
 
+== TODO
+
+- Command line arguments
+- Creating child processes
+- HTTP requests
+- XML
