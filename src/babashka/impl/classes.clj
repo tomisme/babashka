@@ -1,19 +1,10 @@
 (ns babashka.impl.classes
   {:no-doc true}
   (:require
-   [cheshire.core :as json]
-   #_[clojure.string :as str]))
-
-;; (def os-name (str/lower-case (System/getProperty "os.name")))
-;; (def os (cond (str/includes? os-name "mac") :mac
-;;               (or (str/includes? os-name "nix")
-;;                   (str/includes? os-name "nux")) :linux
-;;               (str/includes? os-name "win") :windows))
-;; (def unix-like? (or (identical? os :linux)
-;;                     (identical? os :mac)))
+   [cheshire.core :as json]))
 
 (def classes
-  '{:all [clojure.lang.ExceptionInfo
+  `{:all [clojure.lang.ExceptionInfo
           java.io.BufferedReader
           java.io.BufferedWriter
           java.io.ByteArrayInputStream
@@ -112,7 +103,10 @@
           java.util.zip.InflaterInputStream
           java.util.zip.DeflaterInputStream
           java.util.zip.GZIPInputStream
-          java.util.zip.GZIPOutputStream]
+          java.util.zip.GZIPOutputStream
+          org.yaml.snakeyaml.error.YAMLException
+          ~(symbol "[B")
+          ]
     :constructors [clojure.lang.Delay
                    clojure.lang.MapEntry
                    clojure.lang.LineNumberingPushbackReader
@@ -187,7 +181,11 @@
                         ;; not supported: {:name "setURLStreamHandlerFactory"}
                         {:name "toExternalForm"}
                         {:name "toString"}
-                        {:name "toURI"}]}}})
+                        {:name "toURI"}]}
+             com.sun.xml.internal.stream.XMLInputFactoryImpl
+             {:methods [{:name "<init>" :parameterTypes []}]}
+             com.sun.xml.internal.stream.XMLOutputFactoryImpl
+             {:methods [{:name "<init>" :parameterTypes []}]}}})
 
 (defmacro gen-class-map []
   (let [classes (concat (:all classes)

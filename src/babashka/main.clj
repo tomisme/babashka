@@ -22,13 +22,14 @@
    [babashka.impl.socket-repl :as socket-repl]
    [babashka.impl.test :as t]
    [babashka.impl.tools.cli :refer [tools-cli-namespace]]
+   [babashka.impl.xml :as xml]
    [babashka.impl.transit :refer [transit-namespace]]
+   [babashka.impl.yaml :refer [yaml-namespace]]
    [babashka.wait :as wait]
    [clojure.edn :as edn]
    [clojure.java.io :as io]
    [clojure.stacktrace :refer [print-stack-trace]]
    [clojure.string :as str]
-   [babashka.impl.yaml :refer [yaml-namespace]]
    [sci.addons :as addons]
    [sci.core :as sci]
    [sci.impl.interpreter :refer [eval-string*]]
@@ -247,6 +248,7 @@ Everything after that is bound to *command-line-args*."))
     async clojure.core.async
     csv clojure.data.csv
     json cheshire.core
+    xml clojure.data.xml
     yaml clj-yaml.core
     curl babashka.curl
     transit cognitect.transit
@@ -281,6 +283,7 @@ Everything after that is bound to *command-line-args*."))
    'clojure.repl {'demunge demunge}
    'clojure.test t/clojure-test-namespace
    'babashka.classpath {'add-classpath add-classpath*}
+   'clojure.data.xml xml/xml-namespace
    'clj-yaml.core yaml-namespace
    'clojure.pprint pprint-namespace
    'babashka.curl curl-namespace

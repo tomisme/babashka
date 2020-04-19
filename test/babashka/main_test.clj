@@ -122,6 +122,7 @@
 
 (deftest load-file-test
   (let [tmp (java.io.File/createTempFile "script" ".clj")]
+    (.deleteOnExit tmp)
     (spit tmp "(ns foo) (defn foo [x y] (+ x y)) (defn bar [x y] (* x y))")
     (is (= "120\n" (test-utils/bb nil (format "(load-file \"%s\") (foo/bar (foo/foo 10 30) 3)"
                                               (.getPath tmp)))))
@@ -129,6 +130,31 @@
       (is (= 'start-ns
              (bb nil (format "(ns start-ns) (load-file \"%s\") (ns-name *ns*)"
                              (.getPath tmp))))))))
+
+(deftest repl-source-test
+  (let [tmp (java.io.File/createTempFile "lib" ".clj")
+        name (str/replace (.getName tmp) ".clj" "")
+        dir (.getParent tmp)]
+    (.deleteOnExit tmp)
+    (testing "print source from loaded file"
+      (spit tmp (format "
+(ns %s)
+
+(defn foo [x y]
+  (+ x y))" name))
+      (is (= "(defn foo [x y]\n  (+ x y))\n"
+             (bb nil (format "
+(load-file \"%s\")
+(require '[clojure.repl :refer [source]])
+(with-out-str (source %s/foo))"
+                             (.getPath tmp)
+                             name)))))
+    (testing "print source from file on classpath"
+      (is (= "(defn foo [x y]\n  (+ x y))\n"
+             (bb nil
+                 "-cp" dir
+                 "-e" (format "(require '[clojure.repl :refer [source]] '[%s])" name)
+                 "-e" (format "(with-out-str (source %s/foo))" name)))))))
 
 (deftest eval-test
   (is (= "120\n" (test-utils/bb nil "(eval '(do (defn foo [x y] (+ x y))
@@ -342,11 +368,16 @@
   (is (true? (bb nil "(nil? *command-line-args*)")))
   (is (= ["1" "2" "3"] (bb nil "*command-line-args*" "1" "2" "3"))))
 
-(deftest need-constructors-test
+(deftest constructors-test
   (testing "the clojure.lang.Delay constructor works"
     (is (= 1 (bb nil "@(delay 1)"))))
   (testing "the clojure.lang.MapEntry constructor works"
     (is (true? (bb nil "(= (first {1 2}) (clojure.lang.MapEntry. 1 2))")))))
+
+(deftest clojure-data-xml-test
+  (is (= "<?xml version=\"1.0\" encoding=\"UTF-8\"?><items><item>1</item><item>2</item></items>"
+         (bb nil "(let [xml (xml/parse-str \"<items><item>1</item><item>2</item></items>\")] (xml/emit-str xml))")))
+  (is (= "0.0.87-SNAPSHOT" (bb nil "examples/pom_version.clj" (.getPath (io/file "test-resources" "pom.xml"))))))
 
 (deftest uberscript-test
   (let [tmp-file (java.io.File/createTempFile "uberscript" ".clj")]
