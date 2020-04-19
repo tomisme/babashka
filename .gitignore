@@ -20,3 +20,4 @@ pom.xml.asc
 /tmp
 /reports
 /doc/book/**/*.html
+/doc/book/**/*.pdf
