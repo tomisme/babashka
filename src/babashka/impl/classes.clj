@@ -101,6 +101,9 @@
           java.util.MissingResourceException
           java.util.Properties
           java.util.UUID
+          java.util.concurrent.Executors
+          java.util.concurrent.FutureTask
+          java.util.concurrent.ThreadPoolExecutor
           java.util.concurrent.TimeUnit
           java.util.zip.InflaterInputStream
           java.util.zip.DeflaterInputStream
