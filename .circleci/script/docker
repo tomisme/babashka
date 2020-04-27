@@ -18,7 +18,7 @@ if [ -z "$CIRCLE_PULL_REQUEST" ]
 then
     echo "Building Docker image $image_name:$image_tag"
     echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
-    docker build -t "$image_name" --build-arg BABASHKA_XMX="-J-Xmx4000m" .
+    docker build -t "$image_name" --build-arg BABASHKA_XMX="-J-Xmx4500m" .
     docker tag "$image_name:$latest_tag" "$image_name:$image_tag"
     if [ push = "true"]
     then
