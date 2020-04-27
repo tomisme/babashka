@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+export BABASHKA_FEATURE_HSQLDB=true
+
 set -eo pipefail
 
 if [ -z "$BABASHKA_XMX" ]; then
