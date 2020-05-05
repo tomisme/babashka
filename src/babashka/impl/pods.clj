@@ -1,10 +1,12 @@
 (ns babashka.impl.pods
   {:no-doc true}
   (:refer-clojure :exclude [read])
-  (:require [babashka.impl.bencode.core :as bencode]
-            [cheshire.core :as cheshire]
+  (:require [cheshire.core :as cheshire]
             [clojure.core.async :as async]
-            [clojure.edn :as edn]))
+            [clojure.edn :as edn]
+            [clojure.java.io :as io]
+            [clojure.string :as str])
+  (:import [java.io PushbackReader]))
 
 (set! *warn-on-reflection* true)
 
@@ -12,57 +14,58 @@
   (-> (Runtime/getRuntime)
       (.addShutdownHook (Thread. f))))
 
-(defn write [^java.io.OutputStream stream v]
-  (locking stream
-    (bencode/write-bencode stream v)
-    (.flush stream)))
+(defn write [pod v]
+  (let [write-fn (:write-fn pod)]
+    (binding [*out* (io/writer (:stdin pod))]
+      (println (write-fn v))
+      (flush))))
 
-(defn read [stream]
-  (bencode/read-bencode stream))
-
-(defn bytes->string [^"[B" bytes]
-  (String. bytes))
+(defn read [pod]
+  (let [read-fn (:read-fn pod)
+        v (read-fn)]
+    v))
 
 (defn processor [pod]
-  (let [stdout (:stdout pod)
-        format (:format pod)
-        chans (:chans pod)
-        read-fn (case format
-                  :edn edn/read-string
-                  :json #(cheshire/parse-string % true))]
-    (loop []
-      (try
-        (let [reply (read stdout)
-              id    (get reply "id")
-              id    (bytes->string id)
-              value (get reply "value")
-              value (when value (bytes->string value))
-              value (when value (read-fn value))
-              status (get reply "status")
-              status (set (map (comp keyword bytes->string) status))
+  (let [chans (:chans pod)]
+    (try
+      (loop []
+        (let [reply (read pod)
+              id    (get reply :id)
+              value (get reply :value)
+              status (get reply :status)
+              status (set (map keyword status))
               done? (contains? status :done)
               chan (get @chans id)]
           (when value (async/>!! chan value))
           (when done? (async/close! chan)))
-        (catch Exception e (prn e)))
-      (recur))))
+        (recur))
+      (catch Exception e (prn e)))))
 
 (defn invoke [pod pod-var args async?]
-  (let [stream (:stdin pod)
-        format (:format pod)
-        chans (:chans pod)
-        write-fn (case format
-                   :edn pr-str
-                   :json cheshire/generate-string)
+  (let [chans (:chans pod)
         id (str (java.util.UUID/randomUUID))
         chan (async/chan)
         _ (swap! chans assoc id chan)
-        _ (write stream {"id" id
-                         "op" "invoke"
-                         "var" (str pod-var)
-                         "args" (write-fn args)})]
+        _ (write pod {:id id
+                      :op "invoke"
+                      :var pod-var
+                      :args args})]
     (if async? chan
         (async/<!! chan))))
+
+(defn read-headers
+  [^java.io.InputStream stdout]
+  (let [^java.io.BufferedReader reader (io/reader stdout)]
+    (loop [headers {}]
+      (if-let [line (.readLine reader)]
+        (if (str/blank? line)
+          headers
+          (let [[k v] (str/split line #":" 2)
+                k (keyword k)
+                v (when v (str/trim v))
+                headers (assoc headers k v)]
+            (recur headers)))
+        headers))))
 
 (defn load-pod
   ([ctx pod-spec] (load-pod ctx pod-spec nil))
@@ -73,27 +76,34 @@
          p (.start pb)
          stdin (.getOutputStream p)
          stdout (.getInputStream p)
-         stdout (java.io.PushbackInputStream. stdout)
          _ (add-shutdown-hook! #(.destroy p))
-         _ (write stdin {"op" "describe"})
-         reply (read stdout)
-         format (-> (get reply "format") bytes->string keyword)
+         headers (read-headers stdout)
+         format (-> (:format headers) keyword)
+         write-fn (case format
+                    :edn pr-str
+                    :json #(cheshire/generate-string % true))
+         read-fn (case format
+                   :json (let [messages (cheshire/parsed-seq (io/reader stdout) true)
+                               messages (volatile! messages)]
+                           (fn []
+                             (if-let [ms (seq @messages)]
+                               (do (vreset! messages (rest ms))
+                                   (first ms))
+                               ::EOF)))
+                   :edn (let [reader (PushbackReader. (io/reader stdout))]
+                          #(do
+                             (edn/read {:eof ::EOF} reader))))
          pod {:process p
               :pod-spec pod-spec
               :stdin stdin
+              :write-fn write-fn
+              :read-fn read-fn
               :stdout stdout
               :chans (atom {})
               :format format}
-         vars (get reply "vars")
-         vars (map (fn [var]
-                     (let [var (zipmap (map keyword (keys var))
-                                       (map bytes->string (vals var)))
-                           var (-> var
-                                   (update :namespace symbol)
-                                   (update :name symbol)
-                                   (update :async #(Boolean/parseBoolean %)))]
-                       var))
-                   vars)
+         _ (write pod {:op "describe"})
+         reply ((:read-fn pod))
+         vars (:vars reply)
          env (:env ctx)]
      (swap! env
             (fn [env]
@@ -101,6 +111,9 @@
                     namespaces (reduce (fn [acc v]
                                          (let [ns (:namespace v)
                                                name (:name v)
+                                               [ns name]
+                                               (if (identical? format :json)
+                                                 [(symbol ns) (symbol name)] [ns name])
                                                sym (symbol (str ns) (str name))
                                                async? (:async v)
                                                f (fn [& args]

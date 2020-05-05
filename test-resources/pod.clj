@@ -1,83 +1,91 @@
 (ns pod
   (:refer-clojure :exclude [read read-string])
   (:require [babashka.pods :as pods]
-            [bencode.core :as bencode]
             [cheshire.core :as cheshire]
             [clojure.core.async :as async]
-            [clojure.edn :as edn])
-  (:import [java.io PushbackInputStream])
+            [clojure.edn :as edn]
+            [clojure.java.io :as io])
   (:gen-class))
 
-(def stdin (PushbackInputStream. System/in))
-
-(defn write [v]
-  (bencode/write-bencode System/out v)
-  (.flush System/out))
-
-(defn read-string [^"[B" v]
-  (String. v))
-
-(defn read []
-  (bencode/read-bencode stdin))
+(defn debug [& args]
+  (binding [*out* (io/writer "/tmp/log.txt" :append true)]
+    (apply prn args)
+    (flush)))
 
 (defn run-pod [cli-args]
   (let [format (if (contains? cli-args "--json")
                  :json
                  :edn)
-        write-fn (if (identical? :json format)
-                   cheshire/generate-string
-                   pr-str)
-        read-fn (if (identical? :json format)
-                  #(cheshire/parse-string % true)
-                  edn/read-string)]
+        read-fn (case format
+                  :edn (let [reader *in*]
+                         #(do
+                            (debug "reading")
+                            (let [v (edn/read {:eof ::EOF} reader)]
+                              (debug "read" v)
+                              v)))
+                  :json (let [messages (cheshire/parsed-seq *in* true)
+                              messages (volatile! messages)]
+                          (fn []
+                            (debug "reading next JSON")
+                            (if-let [ms (seq @messages)]
+                              (do (vreset! messages (rest ms))
+                                  (first ms))
+                              ::EOF))))
+        write-fn (case format
+                   :edn (fn [v] (locking *out*
+                                  (prn v)
+                                  (flush)))
+                   :json (fn [v]
+                           (debug "writing JSON" v)
+                           (locking *out*
+                             (println (cheshire/generate-string v true))
+                             (flush))))]
+    (debug "writing headers")
+    (println "format: " (name format))
+    (println)
     (loop []
-      (let [message (try (read)
-                         (catch java.io.EOFException _
-                           ::EOF))]
+      (let [message (read-fn)]
+        (debug "got message" message)
         (when-not (identical? ::EOF message)
-          (let [op (get message "op")
-                op (read-string op)
+          (let [op (:op message)
                 op (keyword op)]
             (case op
-              :describe (do (write {"format" (if (= format :json)
-                                               "json"
-                                               "edn")
-                                    "vars" [{"namespace" "pod.test-pod"
-                                             "name" "add-sync"}
-                                            {"namespace" "pod.test-pod"
-                                             "name" "range-stream"
-                                             "async" "true"}
-                                            {"namespace" "pod.test-pod"
-                                             "name" "assoc"}]})
-                            (recur))
-              :invoke (let [var (-> (get message "var")
-                                    read-string
+              :describe (do
+                          (debug "describe")
+                          (write-fn '{:vars [{:namespace pod.test-pod
+                                              :name add-sync}
+                                             {:namespace pod.test-pod
+                                              :name range-stream
+                                              :async true}
+                                             {:namespace pod.test-pod
+                                              :name assoc}]})
+                          (recur))
+              :invoke (let [var (-> (:var message)
                                     symbol)
-                            id (-> (get message "id")
-                                   read-string)
-                            args (get message "args")
-                            args (read-string args)
-                            args (read-fn args)]
+                            id (:id message)
+                            args (:args message)]
                         (case var
-                          pod.test-pod/add-sync (write
-                                                 {"value" (write-fn (apply + args))
-                                                  "id" id
-                                                  "status" ["done"]})
+                          pod.test-pod/add-sync
+                          (do (debug "invoking var")
+                              (write-fn
+                               {:value (apply + args)
+                                :id id
+                                :status ["done"]}))
                           pod.test-pod/range-stream
                           (let [rng (apply range args)]
                             (doseq [v rng]
-                              (write
-                               {"value" (write-fn v)
-                                "id" id})
+                              (write-fn
+                               {:value v
+                                :id id})
                               (Thread/sleep 100))
-                            (write
-                             {"status" ["done"]
-                              "id" id}))
+                            (write-fn
+                             {:status ["done"]
+                              :id id}))
                           pod.test-pod/assoc
-                          (write
-                           {"value" (write-fn (apply assoc args))
-                            "status" ["done"]
-                            "id" id}))
+                          (write-fn
+                           {:value (apply assoc args)
+                            :status ["done"]
+                            :id id}))
                         (recur)))))))))
 
 (let [cli-args (set *command-line-args*)]
@@ -85,8 +93,8 @@
     (run-pod cli-args)
     (let [native? (contains? cli-args "--native")]
       (pods/load-pod (if native?
-                       ["./bb" "test-resources/pod.clj" "--run-as-pod"]
-                       ["lein" "bb" "test-resources/pod.clj" "--run-as-pod"]))
+                       (into ["./bb" "test-resources/pod.clj" "--run-as-pod"] cli-args)
+                       (into ["lein" "bb" "test-resources/pod.clj" "--run-as-pod"] cli-args)))
       (require '[pod.test-pod])
       (if (contains? cli-args "--json")
         (prn ((resolve 'pod.test-pod/assoc) {:a 1} :b 2))
