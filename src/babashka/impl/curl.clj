@@ -13,4 +13,4 @@
    'post (copy-var curl/post tns)
    'put (copy-var curl/put tns)
    'head (copy-var curl/head tns)
-   'curl-command (copy-var curl/curl-command tns)})
+   'delete (copy-var curl/delete tns)})

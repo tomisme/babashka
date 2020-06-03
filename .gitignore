@@ -21,3 +21,7 @@ pom.xml.asc
 /reports
 /doc/book/**/*.html
 /doc/book/**/*.pdf
+*.dylib
+*.log
+org_babashka*.h
+>>>>>>> master
